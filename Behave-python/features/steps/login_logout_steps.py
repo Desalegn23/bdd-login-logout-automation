@@ -1,14 +1,9 @@
 import os
-import time
 import logging
-from behave import given, when, then, step_matcher
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+from behave import given, when, then
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -16,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 # Constants
 BASE_URL = "https://www.saucedemo.com/"
-TIMEOUT = 10
 
 # Page Element Locators
 class LoginPageLocators:
@@ -30,53 +24,6 @@ class DashboardPageLocators:
     LOGOUT_LINK = (By.ID, "logout_sidebar_link")
     APP_LOGO = (By.CLASS_NAME, "app_logo")
 
-def before_scenario(context, scenario):
-    """Setup before each scenario."""
-    try:
-        chrome_options = Options()
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-notifications")
-        
-        # For headless mode (uncomment if needed)
-        # chrome_options.add_argument("--headless")
-        # chrome_options.add_argument("--disable-gpu")
-        
-        # Explicitly set the ChromeDriver version and platform
-        chrome_version = "114.0.5735.90"  # Stable version known to work well
-        driver_path = ChromeDriverManager(version=chrome_version).install()
-        
-        # Initialize the Chrome WebDriver with the specified options
-        service = Service(driver_path)
-        context.driver = webdriver.Chrome(service=service, options=chrome_options)
-        
-        # Set up waits
-        context.driver.implicitly_wait(TIMEOUT)
-        context.wait = WebDriverWait(context.driver, TIMEOUT)
-        logger.info(f"Chrome browser started with ChromeDriver version {chrome_version}")
-    except Exception as e:
-        logger.error(f"Error initializing WebDriver: {str(e)}")
-        raise
-
-def after_scenario(context, scenario):
-    """Teardown after each scenario."""
-    if hasattr(context, 'driver') and context.driver:
-        if scenario.status == 'failed':
-            # Take screenshot on failure
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            screenshot_dir = os.path.join(os.getcwd(), "screenshots")
-            os.makedirs(screenshot_dir, exist_ok=True)
-            screenshot_path = os.path.join(screenshot_dir, f"{scenario.name}_{timestamp}.png")
-            try:
-                context.driver.save_screenshot(screenshot_path)
-                logger.info(f"Screenshot saved to {screenshot_path}")
-            except Exception as e:
-                logger.error(f"Failed to take screenshot: {str(e)}")
-        
-        # Close the browser
-        context.driver.quit()
-        logger.info("Browser closed")
-
-# Common step definitions
 @given('I am on the login page')
 def step_on_login_page(context):
     """Navigate to the login page."""
@@ -92,17 +39,12 @@ def step_on_login_page(context):
 def step_login(context, username, password):
     """Perform login with given credentials."""
     try:
-        # Clear and enter username
         username_field = context.wait.until(EC.visibility_of_element_located(LoginPageLocators.USERNAME_FIELD))
         username_field.clear()
         username_field.send_keys(username)
-        
-        # Clear and enter password
         password_field = context.driver.find_element(*LoginPageLocators.PASSWORD_FIELD)
         password_field.clear()
         password_field.send_keys(password)
-        
-        # Click login button
         login_button = context.driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
         login_button.click()
         logger.info(f"Attempted login with username: {username}")
@@ -132,11 +74,8 @@ def step_logged_in(context, username, password):
 def step_logout(context):
     """Perform logout action."""
     try:
-        # Click menu button
         menu_button = context.wait.until(EC.element_to_be_clickable(DashboardPageLocators.MENU_BUTTON))
         menu_button.click()
-        
-        # Click logout link
         logout_link = context.wait.until(EC.element_to_be_clickable(DashboardPageLocators.LOGOUT_LINK))
         logout_link.click()
         logger.info("Logged out successfully")
