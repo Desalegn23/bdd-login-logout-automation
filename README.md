@@ -37,3 +37,27 @@ Each folder contains its own `README.md` with:
 
 ## 📁 Project Structure
 
+```text
+bdd-login-logout-automation/
+├── behave-python/               # Python project using Behave
+│   ├── features/                # Feature files and step definitions
+│   │   ├── steps/               # Python step implementations
+│   │   └── login_logout.feature # BDD scenarios for login/logout
+│   ├── environment.py           # Behave environment hooks (setup/teardown)
+│   └── requirements.txt         # Python dependencies
+│
+├── cucumber-java/              # Java project using Cucumber
+│   ├── src/
+│   │   ├── main/
+│   │   │   └── java/            # Page objects, utilities, etc.
+│   │   └── test/
+│   │       ├── java/           # Step definitions, test runner
+│   │       └── resources/
+│   │           └── features/   # .feature files
+│   └── pom.xml                 # Maven configuration
+│
+├── .gitignore
+└── README.md                   # Project overview
+
+
+
